@@ -1,0 +1,105 @@
+local plr = game.Players.LocalPlayer
+local UserInputService = game:GetService("UserInputService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local RunService = game:GetService("RunService")
+
+local enabled = false
+local teleporting = false
+local originalCFrame = nil
+local keys = {"One", "Two", "Three", "Four", "Five"}
+
+-- Toggle everything with P
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+	if not gameProcessed and input.KeyCode == Enum.KeyCode.P then
+		local char = plr.Character
+		local hrp = char and char:FindFirstChild("HumanoidRootPart")
+
+		if not enabled and hrp then
+			-- Turning ON
+			enabled = true
+			teleporting = true
+			originalCFrame = hrp.CFrame
+			print("Automation ON")
+		elseif enabled and hrp then
+			-- Turning OFF
+			enabled = false
+			teleporting = false
+			hrp.CFrame = originalCFrame
+			print("Automation OFF")
+		end
+	end
+end)
+
+-- Teleport loop
+task.spawn(function()
+	while true do
+		task.wait(0.1)
+		if teleporting and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+			plr.Character.HumanoidRootPart.CFrame = CFrame.new(0, 10000, 0)
+		end
+	end
+end)
+
+-- Auto key press + click loop
+RunService.RenderStepped:Connect(function()
+	if enabled then
+		for _, keyName in ipairs(keys) do
+			VirtualInputManager:SendKeyEvent(true, Enum.KeyCode[keyName], false, game)
+			task.wait(0.05)
+			VirtualInputManager:SendKeyEvent(false, Enum.KeyCode[keyName], false, game)
+
+			task.wait(0.1)
+
+			VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 0)
+			task.wait(0.05)
+			VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 0)
+
+			task.wait(0.2)
+		end
+	end
+end)
+-- Create ScreenGui
+local player = game.Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "KeybindInfoGui"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = playerGui
+
+-- Top label (Keybind Info)
+local keybindLabel = Instance.new("TextLabel")
+keybindLabel.Parent = screenGui
+keybindLabel.Size = UDim2.new(0, 400, 0, 50)
+keybindLabel.Position = UDim2.new(0.1, 0, 0.9, -100)
+keybindLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+keybindLabel.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+keybindLabel.TextColor3 = Color3.new(1, 1, 1)
+keybindLabel.Text = 'Keybind: "P for autofarm"'
+keybindLabel.Font = Enum.Font.SourceSansBold
+keybindLabel.TextSize = 20
+keybindLabel.BackgroundTransparency = 0.2
+keybindLabel.BorderSizePixel = 0
+keybindLabel.TextWrapped = true
+
+-- Bottom label (Credits)
+local creditLabel = Instance.new("TextLabel")
+creditLabel.Parent = screenGui
+creditLabel.Size = UDim2.new(0, 300, 0, 30)
+creditLabel.Position = UDim2.new(0.1, 0, 0.9, -40)
+creditLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+creditLabel.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+creditLabel.TextColor3 = Color3.new(1, 1, 1)
+creditLabel.Text = "Script by Blue_oreoes and Blanzo"
+creditLabel.Font = Enum.Font.SourceSansItalic
+creditLabel.TextSize = 18
+creditLabel.BackgroundTransparency = 0.2
+creditLabel.BorderSizePixel = 0
+creditLabel.TextWrapped = true
+
+-- Toggle visibility with Insert key
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed and input.KeyCode == Enum.KeyCode.Insert then
+        screenGui.Enabled = not screenGui.Enabled
+    end
+end)
